@@ -27,7 +27,7 @@ function addNode() {
 			id: document.getElementById("node-insert").value,
 			label: document.getElementById("node-insert").value + "\n h(" + document.getElementById("heuristic").value + ")",
 			heuristic: document.getElementById("heuristic").value,
-			color: "blue",
+			color: "lightblue",
 			
 		});
 		console.log(nodes);
@@ -69,6 +69,7 @@ function addEdge() {
 			label : document.getElementById("weight").value,
 			arrows: "to" ,
 			font: { align: "top" },
+			color: "black",
 		});
 		console.log(edges);
 	} catch (error) {
@@ -160,25 +161,68 @@ function DFS()
 	   Adj(t).filter(n => !explored.has(n)).forEach(n => {explored.add(n);s.push(n);});
 	}
  }
- function sleep(miliseconds) {
-	var currentTime = new Date().getTime();
+//  function sleep(miliseconds) {
+// 	var currentTime = new Date().getTime();
  
-	while (currentTime + miliseconds >= new Date().getTime()) {
-	}
+// 	while (currentTime + miliseconds >= new Date().getTime()) {
+// 	}
+//  }
+
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+ function change_color_node(t, color_name){
+	nodes.update({
+		id: t,
+		color:color_name,
+	});
  }
 
-function BFS() {
+ function change_color_edge(parent, child, color_name) {
+	edges.update({
+		id: parent+"-"+child,
+		color:color_name,
+	});
+ }
+
+async function backtrack(parent, start, end){
+	console.log(end);
+	let last_added = end;
+	change_color_node(end, "pink");
+	await sleep(500);
+	while(last_added != start)
+	{
+		let x = parent[last_added];
+		console.log(x);
+		change_color_node(x, "pink");
+		// edges.update({
+		// 	id: x+"-"+last_added,
+		// 	color:"red",
+		// });
+		change_color_edge(x, last_added, "red");
+		await sleep(500);
+		last_added = x;
+	}
+
+}
+
+async function BFS() {
 
 	let q = new Queue(nodes.length);
 	let explored = new Set();
+	let start_node = document.getElementById("node4").value;
+	let end_node = document.getElementById("node5").value
 	q.enqueue(document.getElementById("node4").value);
-	nodes.update({
-		id: document.getElementById("node4").value,
-		color:"red",
+	var parent = {};
+	// nodes.update({
+	// 	id: document.getElementById("node4").value,
+	// 	color:"red",
 		
-	});
+	// });
+	change_color_node(document.getElementById("node4").value, "lightgreen");
 	console.log(nodes);
-	sleep(2000);
+	await sleep(500);
 	explored.add(document.getElementById("node4").value);
 	var b=0;
 	while (!q.isEmpty()) {
@@ -186,22 +230,116 @@ function BFS() {
 	   console.log(t);
 	   if(b>0)
 	   {
-		nodes.update({
-			id: t,
-			color:"red",
-			
-		});
-		console.log(nodes);
-		sleep(2000);
+		change_color_node(t, "lightgreen");
+	   }
+	   if(t != start_node)
+	   {
+			change_color_edge(parent[t], t, "lightgreen");
 	   }
 	   b=b+1;
-	   Adj(t).filter(n => !explored.has(n)).forEach(n => {explored.add(n);q.enqueue(n);});
+	   if(t == end_node)
+	   	break;
+	   Adj(t).filter(n => !explored.has(n)).forEach(n => {explored.add(n);q.enqueue(n);parent[n]=t;});
+	   await sleep(500);
 	}
+
+	console.log(parent);
+	backtrack(parent, start_node, end_node);
  }
 
 function createGraph() {
-	nodes = new vis.DataSet();
-	edges = new vis.DataSet();
+	nodes = new vis.DataSet(
+		[
+			{
+				id: "a",
+				label: "a\nh(10)",
+				heuristic: "10",
+				color: "lightblue",
+			},
+			{
+				id: "b",
+				label: "b\nh(20)",
+				heuristic: "20",
+				color: "lightblue",
+			},
+			{
+				id: "c",
+				label: "c\nh(5)",
+				heuristic: "5",
+				color: "lightblue",
+			},
+			{
+				id: "d",
+				label: "d\nh(6)",
+				heuristic: "6",
+				color: "lightblue",
+			},
+			{
+				id: "e",
+				label: "e\nh(0)",
+				heuristic: "0",
+				color: "lightblue",
+			},
+		]
+	);
+	edges = new vis.DataSet(
+		[
+			{
+				id: "a-b",
+				from: "a",
+				to: "b",
+				label : "100",
+				arrows: "to" ,
+				color: "black",
+				font: { align: "top" },
+			},
+			{
+				id: "a-c",
+				from: "a",
+				to: "c",
+				label : "200",
+				arrows: "to" ,
+				font: { align: "top" },
+				color: "black",
+			},
+			{
+				id: "b-c",
+				from: "b",
+				to: "c",
+				label : "300",
+				arrows: "to" ,
+				font: { align: "top" },
+				color: "black",
+			},
+			{
+				id: "b-d",
+				from: "b",
+				to: "d",
+				label : "150",
+				arrows: "to" ,
+				font: { align: "top" },
+				color: "black",
+			},
+			{
+				id: "c-e",
+				from: "c",
+				to: "e",
+				label : "160",
+				arrows: "to" ,
+				font: { align: "top" },
+				color: "black",
+			},
+			{
+				id: "d-e",
+				from: "d",
+				to: "e",
+				label : "170",
+				arrows: "to" ,
+				font: { align: "top" },
+				color: "black",
+			},
+		]
+	);
 	
 	var container = document.getElementById('graph');
 	
